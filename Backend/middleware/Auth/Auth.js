@@ -5,7 +5,9 @@ export default async function isloggedin(req, res, next) {
         const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
         if (token) {
             const decoded = jwt.verify(token, process.env.JWT_KEY);
+            console.log(decoded);
             const userid = decoded.id;
+            console.log(userid);
             const user = await userModel.findById(userid);
             if (!user) {
                 res.send("user not found");
