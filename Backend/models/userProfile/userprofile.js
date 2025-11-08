@@ -1,6 +1,11 @@
 import { Schema, Model, Document } from "mongoose";
 import mongoose from "mongoose";
 const profileSchema = new Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "email",
+        require: true
+    },
     name: {
         type: String,
         require: true

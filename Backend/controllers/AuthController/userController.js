@@ -52,29 +52,36 @@ export const SignUp = async (req, res) => {
 export const VerifyOTP = async (req, res) => {
     try {
         const { email, otp } = req.body;
-        console.log("🔍 Verifying OTP for:", email);
         const data = otpStorage.get(email);
         if (!data || data.otp !== otp) {
             console.log("❌ Invalid or expired OTP");
             return res.status(400).json({ error: "Invalid or expired OTP" });
         }
+        // ✅ Hash password
         const hashedPassword = await bcrypt.hash(data.password, 10);
+        // ✅ Create user
         await userModel.create({
             name: data.name,
             email: data.email,
             password: hashedPassword,
             shopName: data.shopName,
         });
+        // ✅ Fetch user properly (important!)
+        const user = await userModel.findOne({ email: data.email });
+        if (!user) {
+            console.log("❌ User not found after creation");
+            return res.status(404).json({ error: "User not found" });
+        }
         otpStorage.delete(email);
-        const token = jwt.sign({ email: data.email }, process.env.JWT_KEY, {
-            expiresIn: "7d",
-        });
+        // ✅ Sign token with correct id
+        const token = jwt.sign({ id: user._id.toString(), email: user.email }, process.env.JWT_KEY, { expiresIn: "7d" });
+        console.log("🪪 JWT Payload:", { id: user._id.toString(), email: user.email });
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
         });
-        console.log("✅ User created successfully:", data.email);
+        console.log("✅ User created successfully:", user.email);
         res.status(201).json({ message: "User created successfully", token });
     }
     catch (err) {

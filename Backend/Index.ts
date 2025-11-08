@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/MongoConnect/MongoConnect.js";
 import authRoutes from "./routes/authroutes/authroutes.js";
+import profileroute from "./routes/ProfileRoute/Profileroute.js"
 
 dotenv.config();
 
@@ -22,5 +23,6 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api", authRoutes);
+app.use("/profile", profileroute);
 
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
