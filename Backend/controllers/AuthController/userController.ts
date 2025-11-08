@@ -2,8 +2,8 @@ import express from "express";
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import userModel from "../models/userModel.js";
-import type { UserInfo } from "../models/userModel.js";
+import userModel from "../../models/userModel/userModel.js";
+import type { UserInfo } from "../../models/userModel/userModel.js";
 
 import nodemailer from "nodemailer";
 

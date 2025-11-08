@@ -1,5 +1,5 @@
 import express from "express";
-import { SignUp, VerifyOTP, SignIn, ForgotPassword, VerifyForgotPassword } from "../controllers/userController.js";
+import { SignUp, VerifyOTP, SignIn, ForgotPassword, VerifyForgotPassword } from "../../controllers/AuthController/userController.js";
 const router = express.Router();
 router.post("/signup", SignUp);
 router.post("/verify", VerifyOTP);

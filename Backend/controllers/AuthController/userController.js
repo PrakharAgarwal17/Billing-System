@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import userModel from "../models/userModel.js";
+import userModel from "../../models/userModel/userModel.js";
 import nodemailer from "nodemailer";
 const otpStorage = new Map();
 export const SignUp = async (req, res) => {

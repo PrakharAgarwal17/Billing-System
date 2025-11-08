@@ -3,8 +3,8 @@ import type { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import connectDB from "./config/MongoConnect.js";
-import authRoutes from "./routes/authroutes.js";
+import connectDB from "./config/MongoConnect/MongoConnect.js";
+import authRoutes from "./routes/authroutes/authroutes.js";
 
 dotenv.config();
 
