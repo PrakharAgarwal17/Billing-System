@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/MongoConnect/MongoConnect.js";
 import authRoutes from "./routes/authroutes/authroutes.js";
 import profileroute from "./routes/ProfileRoute/Profileroute.js";
+import shoproute from "./routes/Shoproutes/shopRoute.js";
 dotenv.config();
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
@@ -17,5 +18,6 @@ app.get("/", (req, res) => {
 });
 app.use("/api", authRoutes);
 app.use("/profile", profileroute);
+app.use("/shop", shoproute);
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
 //# sourceMappingURL=Index.js.map
