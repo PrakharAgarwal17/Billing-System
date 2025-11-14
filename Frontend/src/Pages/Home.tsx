@@ -67,7 +67,7 @@ export function Home() {
             <button className="h-10 w-20 px-6 py-3 bg-white cursor-pointer text-black rounded-br-lg font-semibold hover:bg-gray-200 transition mt-10">
              <Link to="/about">About</Link>
             </button>
-            <button className="rounded-br-lg px-6 py-3 cursor-pointer w-[120px] p-20 bg-gradient-to-r from-black to-gray-700 text-white font-semibold hover:opacity-90 transition mt-10">
+            <button className="rounded-br-lg px-6 py-3 cursor-pointer w-[200px] h-[45px] p-20 bg-gradient-to-r from-black to-gray-700 text-white font-semibold hover:opacity-90 transition mt-10">
              <Link to="/login">Get Started</Link>
             </button>
           </div>
