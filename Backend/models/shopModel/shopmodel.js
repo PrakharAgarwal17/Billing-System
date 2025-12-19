@@ -5,30 +5,12 @@ const shopSchema = new Schema({
         ref: "User",
         required: true,
     },
-    ShopName: {
-        type: String,
-        required: true,
-    },
-    ShopPhoto: {
-        type: Buffer,
-        required: true,
-    },
-    Industry: {
-        type: String,
-        required: true,
-    },
-    NumberOfWorkers: {
-        type: Number,
-        required: true,
-    },
-    ElectricityPerUnitRate: {
-        type: Number,
-        required: true,
-    },
-    ShopIsOnRent: {
-        type: Boolean,
-        required: true,
-    },
+    ShopName: { type: String, required: true },
+    ShopPhoto: { type: String },
+    Industry: { type: String, required: true },
+    NumberOfWorkers: { type: Number, required: true },
+    ElectricityPerUnitRate: { type: Number, required: true },
+    ShopIsOnRent: { type: Boolean, required: true },
     ShopRent: {
         type: Number,
         required: function () {

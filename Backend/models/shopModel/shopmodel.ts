@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export interface ShopInfo extends Document {
   UserId: mongoose.Types.ObjectId;
   ShopName: string;
-  ShopPhoto: Buffer;
+  ShopPhoto?: string;
   Industry: string;
   NumberOfWorkers: number;
   ElectricityPerUnitRate: number;
@@ -14,40 +14,24 @@ export interface ShopInfo extends Document {
 const shopSchema = new Schema<ShopInfo>({
   UserId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User", 
+    ref: "User",
     required: true,
   },
-  ShopName: {
-    type: String,
-    required: true,
-  },
-  ShopPhoto: {
-    type: Buffer,
-    required: true,
-  },
-  Industry: {
-    type: String,
-    required: true,
-  },
-  NumberOfWorkers: {
-    type: Number,
-    required: true,
-  },
-  ElectricityPerUnitRate: {
-    type: Number,
-    required: true,
-  },
-  ShopIsOnRent: {
-    type: Boolean,
-    required: true,
-  },
+  ShopName: { type: String, required: true },
+  ShopPhoto: { type: String },
+  Industry: { type: String, required: true },
+  NumberOfWorkers: { type: Number, required: true },
+  ElectricityPerUnitRate: { type: Number, required: true },
+  ShopIsOnRent: { type: Boolean, required: true },
   ShopRent: {
     type: Number,
-    required: function (this: ShopInfo) {
+    required: function () {
       return this.ShopIsOnRent;
-    }, 
+    },
   },
 });
 
-const ShopModel: Model<ShopInfo> = mongoose.model<ShopInfo>("Shop", shopSchema);
+const ShopModel: Model<ShopInfo> =
+  mongoose.model<ShopInfo>("Shop", shopSchema);
+
 export default ShopModel;
