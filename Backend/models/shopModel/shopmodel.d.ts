@@ -2,7 +2,7 @@ import mongoose, { Document, Model } from "mongoose";
 export interface ShopInfo extends Document {
     UserId: mongoose.Types.ObjectId;
     ShopName: string;
-    ShopPhoto: Buffer;
+    ShopPhoto?: string;
     Industry: string;
     NumberOfWorkers: number;
     ElectricityPerUnitRate: number;

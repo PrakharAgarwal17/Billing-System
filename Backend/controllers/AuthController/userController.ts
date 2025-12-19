@@ -4,15 +4,24 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../../models/userModel/userModel.js";
 import type { UserInfo } from "../../models/userModel/userModel.js";
-
+import xss from "xss"
 import nodemailer from "nodemailer";
 
 const otpStorage = new Map<string, any>();
 
 export const SignUp = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, shopName }: UserInfo = req.body;
-    console.log(" Signup request received:", req.body);
+    const rawData: UserInfo = req.body;
+    const name = xss(rawData.name);
+    const email = xss(rawData.email);
+    const password = xss(rawData.password);
+    const shopName = xss(rawData.shopName);
+
+    console.log("Signup request received:", {
+      name,
+      email,
+      shopName,
+    });
 
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
@@ -20,7 +29,7 @@ export const SignUp = async (req: Request, res: Response) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
+    console.log(otp)
     otpStorage.set(email, {
       otp,
       name,
@@ -33,11 +42,11 @@ export const SignUp = async (req: Request, res: Response) => {
       service: "gmail",
       auth: {
         user: process.env.EMAIL,
-        pass: process.env.PASSWORD, // Must be Google App Password!
+        pass: process.env.PASSWORD,
       },
     });
 
-    const info = await transporter.sendMail({
+    await transporter.sendMail({
       from: `"Billing System" <${process.env.EMAIL}>`,
       to: email,
       subject: "Verify your Billing System OTP",
@@ -48,20 +57,14 @@ export const SignUp = async (req: Request, res: Response) => {
       `,
     });
 
-    console.log("✅ OTP sent to:", email);
-    console.log("🔢 OTP:", otp);
-    console.log("📬 Message ID:", info.messageId);
-
     res.status(200).json({ message: "OTP sent successfully" });
 
-    // Auto-delete OTP after 5 min
     setTimeout(() => otpStorage.delete(email), 5 * 60 * 1000);
   } catch (err) {
     console.error("❌ Error in SignUp:", err);
     res.status(500).json({ error: "Failed to send OTP" });
   }
 };
-
 
 
 export const VerifyOTP = async (req: Request, res: Response) => {
@@ -97,11 +100,16 @@ export const VerifyOTP = async (req: Request, res: Response) => {
     otpStorage.delete(email);
 
     // ✅ Sign token with correct id
-    const token = jwt.sign(
-      { id: user._id.toString(), email: user.email },
-      process.env.JWT_KEY as string,
-      { expiresIn: "7d" }
-    );
+    // const token = jwt.sign(
+    //   { id: user._id.toString(), email: user.email },
+    //   process.env.JWT_KEY as string,
+    //   { expiresIn: "7d" }
+    // );
+const token = jwt.sign(
+  { email: user.email,id:user._id },
+  process.env.JWT_KEY as string,
+  { expiresIn: "7d" }
+);
 
     console.log("🪪 JWT Payload:", { id: user._id.toString(), email: user.email });
 
@@ -144,7 +152,7 @@ const isPasswordValid = await bcrypt.compare(password, user.password as string);
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token: string = jwt.sign({ email: user.email }, process.env.JWT_KEY as string, {
+    const token: string = jwt.sign({ email: user.email,id:user._id }, process.env.JWT_KEY as string, {
       expiresIn: "7d",
     });
 

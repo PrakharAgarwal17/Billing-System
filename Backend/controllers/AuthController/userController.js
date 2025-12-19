@@ -2,17 +2,27 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../../models/userModel/userModel.js";
+import xss from "xss";
 import nodemailer from "nodemailer";
 const otpStorage = new Map();
 export const SignUp = async (req, res) => {
     try {
-        const { name, email, password, shopName } = req.body;
-        console.log(" Signup request received:", req.body);
+        const rawData = req.body;
+        const name = xss(rawData.name);
+        const email = xss(rawData.email);
+        const password = xss(rawData.password);
+        const shopName = xss(rawData.shopName);
+        console.log("Signup request received:", {
+            name,
+            email,
+            shopName,
+        });
         const existingUser = await userModel.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ error: "User already exists" });
         }
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log(otp);
         otpStorage.set(email, {
             otp,
             name,
@@ -24,10 +34,10 @@ export const SignUp = async (req, res) => {
             service: "gmail",
             auth: {
                 user: process.env.EMAIL,
-                pass: process.env.PASSWORD, // Must be Google App Password!
+                pass: process.env.PASSWORD,
             },
         });
-        const info = await transporter.sendMail({
+        await transporter.sendMail({
             from: `"Billing System" <${process.env.EMAIL}>`,
             to: email,
             subject: "Verify your Billing System OTP",
@@ -37,11 +47,7 @@ export const SignUp = async (req, res) => {
         <p>This OTP will expire in 5 minutes.</p>
       `,
         });
-        console.log("✅ OTP sent to:", email);
-        console.log("🔢 OTP:", otp);
-        console.log("📬 Message ID:", info.messageId);
         res.status(200).json({ message: "OTP sent successfully" });
-        // Auto-delete OTP after 5 min
         setTimeout(() => otpStorage.delete(email), 5 * 60 * 1000);
     }
     catch (err) {
@@ -74,7 +80,12 @@ export const VerifyOTP = async (req, res) => {
         }
         otpStorage.delete(email);
         // ✅ Sign token with correct id
-        const token = jwt.sign({ id: user._id.toString(), email: user.email }, process.env.JWT_KEY, { expiresIn: "7d" });
+        // const token = jwt.sign(
+        //   { id: user._id.toString(), email: user.email },
+        //   process.env.JWT_KEY as string,
+        //   { expiresIn: "7d" }
+        // );
+        const token = jwt.sign({ email: user.email, id: user._id }, process.env.JWT_KEY, { expiresIn: "7d" });
         console.log("🪪 JWT Payload:", { id: user._id.toString(), email: user.email });
         res.cookie("token", token, {
             httpOnly: true,
@@ -106,7 +117,7 @@ export const SignIn = async (req, res) => {
             console.log("❌ Invalid password");
             return res.status(401).json({ error: "Invalid credentials" });
         }
-        const token = jwt.sign({ email: user.email }, process.env.JWT_KEY, {
+        const token = jwt.sign({ email: user.email, id: user._id }, process.env.JWT_KEY, {
             expiresIn: "7d",
         });
         res.cookie("token", token, {
