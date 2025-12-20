@@ -56,13 +56,11 @@ try {
       ShopRent,
     } = req.body;
     
+    const userId=req.userId?.toString()
     
     if (!req.userId) {
       return res.status(401).json({ message: "unauthorized" });
     }
-    console.log(req.userId)
-    console.log(req.userId.toString())
-    const userId=req.userId.toString()
     
     const ShopPhoto = req.file ? `/uploads/${req.file.filename}` : null;
     
@@ -86,4 +84,55 @@ try {
       message: err || "Something went wrong",
     });
 }
+}
+
+export async function delShop(req:Request,res:Response){
+    try{
+      const userId=req.userId?.toString()
+      const shopId= req.params.shopId
+      
+      await ShopModel.findOneAndDelete({UserId:userId,_id:shopId})
+      if(!userId){
+        res.status(404).json({message:"User is unauthorized"})
+      }
+      if(!shopId) {
+        res.json({message : "shop does not exist"})
+      }
+      else{
+        res.status(201).json({message:"shop deleted successfully"})
+      }
+    }   
+     catch(err){
+      console.log(err);
+      res.status(400).json({message:"There is an error"})
+    }
+
+}
+ 
+export async function renderShop(req: Request, res: Response) {
+  try {
+    const userId = req.userId?.toString();
+    const shopId = req.params.shopId;
+
+    if (!shopId) {
+      return res.status(400).json({ message: "Shop ID missing" });
+    }
+
+    const store = await ShopModel.findOne({
+      UserId: userId,
+      _id: shopId,
+    });
+
+    if (!store) {
+      return res.status(404).json({ message: "Shop Not Found" });
+    }
+
+    res.status(200).json(store);
+
+  } catch (err) {
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: err,
+    });
+  }
 }

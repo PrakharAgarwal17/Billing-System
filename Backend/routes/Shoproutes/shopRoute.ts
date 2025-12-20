@@ -1,14 +1,35 @@
-import type { Request,Response } from "express";
+import express from "express";
 import isloggedin from "../../middleware/Auth/Auth.js";
-import express from "express"
-import { createShop } from "../../controllers/ShopController/shopcontroller.js";
+import { createShop, updateShop, delShop, renderShop } 
+from "../../controllers/ShopController/shopcontroller.js";
 import { upload } from "../../config/Multer_config/multer_config.js";
-import { updateShop } from "../../controllers/ShopController/shopcontroller.js";
 
-const router = express.Router()
+const router = express.Router();
 
-router.post("/addshop",isloggedin  , upload.single("ShopPhoto") , createShop )
+router.post(
+  "/addshop",
+  isloggedin,
+  upload.single("ShopPhoto"),
+  createShop
+);
 
-router.put("/updateShop/:shopId", isloggedin,upload.single("ShopPhoto"),updateShop)
+router.put(
+  "/updateShop/:shopId",
+  isloggedin,
+  upload.single("ShopPhoto"),
+  updateShop
+);
 
-export default router
+router.delete(
+  "/deleteshop/:shopId",
+  isloggedin,
+  delShop
+);
+
+router.get(
+  "/ShopInfo/:shopId",
+  isloggedin,
+  renderShop
+);
+
+export default router;

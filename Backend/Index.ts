@@ -7,7 +7,7 @@ import connectDB from "./config/MongoConnect/MongoConnect.js";
 import authRoutes from "./routes/authroutes/authroutes.js";
 import profileroute from "./routes/ProfileRoute/Profileroute.js"
 import shoproute from "./routes/Shoproutes/shopRoute.js"
-
+import productroute from "./routes/Productroutes/Productroutes.js"
 dotenv.config();
 
 const app = express();
@@ -28,5 +28,5 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api", authRoutes);
 app.use("/profile", profileroute);
 app.use("/shop" , shoproute)
-
+app.use("/product" , productroute)
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
