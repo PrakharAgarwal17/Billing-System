@@ -8,6 +8,8 @@ import authRoutes from "./routes/authroutes/authroutes.js";
 import profileroute from "./routes/ProfileRoute/Profileroute.js"
 import shoproute from "./routes/Shoproutes/shopRoute.js"
 import productroute from "./routes/Productroutes/Productroutes.js"
+import cartroute from "./routes/CartRoute/Cartroutes.js"
+import orderroute from "./routes/orderRoute/orderRoute.js"
 dotenv.config();
 
 const app = express();
@@ -29,4 +31,6 @@ app.use("/api", authRoutes);
 app.use("/profile", profileroute);
 app.use("/shop" , shoproute)
 app.use("/product" , productroute)
+app.use("/cart" , cartroute)
+app.use("/order" , orderroute)
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));

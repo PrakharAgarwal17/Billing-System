@@ -9,10 +9,10 @@ export async function addProduct(req, res) {
         const shopId = req.params.shopId;
         console.log(shopId);
         if (!userid) {
-            res.status(401).json({ message: "Unauthorized entry" });
+            return res.status(401).json({ message: "Unauthorized entry" });
         }
         else if (!shopId) {
-            res.status(400).json({ message: "Shop not found" });
+            return res.status(400).json({ message: "Shop not found" });
         }
         const ProductPhoto = req.file ? `/uploads/${req.file.filename}` : null;
         const product = await productModel.create({
@@ -26,11 +26,11 @@ export async function addProduct(req, res) {
             DiscountedPrice,
         });
         if (product) {
-            res.status(201).json({ message: "Product added successfully" });
+            return res.status(201).json({ message: "Product added successfully" });
             console.log(product);
         }
         else {
-            res.json(400).json({ message: "Something went wrong" });
+            return res.json(400).json({ message: "Something went wrong" });
         }
     }
     catch (err) {
@@ -47,10 +47,10 @@ export async function updateProduct(req, res) {
         console.log(productId);
         const { ProductName, ProductQty, PerProductSP, PerProductCP, DiscountedPrice, } = req.body;
         if (!shopId) {
-            res.status(400).json({ message: "Shop not found" });
+            return res.status(400).json({ message: "Shop not found" });
         }
         if (!userId) {
-            res.status(400).json({ message: "Unauthorised user" });
+            return res.status(400).json({ message: "Unauthorised user" });
         }
         const ProductPhoto = req.file ? `/uploads/${req.file.filename}` : null;
         const updatedProduct = await productModel.findOneAndUpdate({ userId: userId, shopId: shopId, _id: productId }, {
@@ -63,15 +63,15 @@ export async function updateProduct(req, res) {
         }, { new: true });
         console.log(updatedProduct);
         if (!updatedProduct) {
-            res.status(404).json({ message: "Something went wrong" });
+            return res.status(404).json({ message: "Something went wrong" });
         }
         else {
-            res.status(200).json({ message: "Product updated succesfully", updatedProduct });
+            return res.status(200).json({ message: "Product updated succesfully", updatedProduct });
         }
     }
     catch (err) {
         console.log(err);
-        res.status(400).json({ message: err });
+        return res.status(400).json({ message: err });
     }
 }
 export async function delProduct(req, res) {
@@ -79,22 +79,22 @@ export async function delProduct(req, res) {
         const userId = req.userId?.toString();
         const shopId = req.params.shopId;
         const productId = req.params.productId;
-        await productModel.findOneAndDelete({ userId: userId, shopId: shopId, _id: productId });
         if (!userId) {
-            res.status(401).json({ message: "Unauthorised user" });
+            return res.status(401).json({ message: "Unauthorised user" });
         }
         else if (!shopId) {
-            res.status(400).json({ message: "Shop not found" });
+            return res.status(400).json({ message: "Shop not found" });
         }
         else if (!productId) {
-            res.status(400).json({ message: "Product not found" });
+            return res.status(400).json({ message: "Product not found" });
         }
         else {
-            res.status(200).json({ message: "Deleted successfully" });
+            await productModel.findOneAndDelete({ userId: userId, shopId: shopId, _id: productId });
+            return res.status(200).json({ message: "Deleted successfully" });
         }
     }
     catch (err) {
-        res.status(404).json("");
+        return res.status(404).json("");
     }
 }
 export async function getProduct(req, res) {
@@ -104,24 +104,24 @@ export async function getProduct(req, res) {
         const shopId = req.params.shopId;
         const Response = await productModel.findOne({ userId: userId, _id: productId, shopId: shopId });
         if (!userId) {
-            res.status(401).json({ message: "Unauthorised user" });
+            return res.status(401).json({ message: "Unauthorised user" });
         }
         if (!shopId) {
-            res.status(400).json({ message: "Shop not found" });
+            return res.status(400).json({ message: "Shop not found" });
         }
         if (!productId) {
-            res.status(400).json({ message: "Product not found" });
+            return res.status(400).json({ message: "Product not found" });
         }
-        if (!response) {
-            res.status(404).json({ message: error });
+        if (!Response) {
+            return res.status(404).json({ message: error });
         }
         else {
-            res.json(Response);
+            return res.json(Response);
         }
     }
     catch (err) {
         console.log(err);
-        res.status(404).json({ message: err });
+        return res.status(404).json({ message: err });
     }
 }
 //# sourceMappingURL=ProductController.js.map
