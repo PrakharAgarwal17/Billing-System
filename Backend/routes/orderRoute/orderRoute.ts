@@ -4,6 +4,6 @@ import { confirmOrder, order } from "../../controllers/OrderController/orderCont
 
 const router = express.Router()
 
-router.post("/confirmOrder/:shopId/:productId/:cartId",isloggedin , confirmOrder )
-router.get("/getorder/:shopId/:productId/:cartId",isloggedin , order)
+router.post("/confirmOrder/:shopId/:cartId",isloggedin , confirmOrder )
+router.get("/getorder/:shopId/:cartId",isloggedin , order)
 export default router
