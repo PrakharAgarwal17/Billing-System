@@ -11,6 +11,7 @@ import cartroute from "./routes/CartRoute/Cartroutes.js";
 import orderroute from "./routes/orderRoute/orderRoute.js";
 import paymentroutes from "./routes/paymentroutes/paymentroutes.js";
 import expenseroutes from "./routes/expenseroutes/expenseroutes.js";
+import businessanalytics from "./routes/businessAnalyticsroute/businessAnalyticsroutes.js";
 dotenv.config();
 const app = express();
 app.use(cors({
@@ -33,5 +34,6 @@ app.use("/cart", cartroute);
 app.use("/order", orderroute);
 app.use("/payment", paymentroutes);
 app.use("/expense", expenseroutes);
+app.use("/business", businessanalytics);
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
 //# sourceMappingURL=Index.js.map
