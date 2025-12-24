@@ -16,13 +16,17 @@ export async function addprofile(req, res) {
         if (profilePhoto && typeof profilePhoto !== "string") {
             return res.status(400).json({ message: "Invalid profile photo" });
         }
-        await profileModel.create({
+        const create = await profileModel.create({
             user: userId,
             name,
             profilePhoto,
             contact,
             region
         });
+        if (!create) {
+            return res.status(400).json({ message: "Profile created unsuccessful" });
+        }
+        return res.status(200).json({ message: "Profile created successfully" });
     }
     catch (err) {
         return res.status(500).json({ message: err });

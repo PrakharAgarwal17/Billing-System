@@ -16,7 +16,6 @@ const profileSchema = new Schema({
     },
     profilePhoto: {
         type: Buffer,
-        required: true,
     },
     region: {
         type: String,

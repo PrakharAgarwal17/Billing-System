@@ -12,7 +12,7 @@ import orderroute from "./routes/orderRoute/orderRoute.js";
 import paymentroutes from "./routes/paymentroutes/paymentroutes.js";
 import expenseroutes from "./routes/expenseroutes/expenseroutes.js";
 import businessanalytics from "./routes/businessAnalyticsroute/businessAnalyticsroutes.js";
-import ExpressMongoSanitize from "express-mongo-sanitize";
+import mongoSanitize from "express-mongo-sanitize";
 dotenv.config();
 const app = express();
 app.use(cors({
@@ -23,7 +23,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(ExpressMongoSanitize());
+app.use((req, _res, next) => {
+    mongoSanitize.sanitize(req.body, {
+        replaceWith: "_",
+    });
+    mongoSanitize.sanitize(req.params, {
+        replaceWith: "_",
+    });
+    next();
+});
 connectDB();
 app.get("/", (req, res) => {
     res.send("Server running successfully ✅");
@@ -37,5 +45,5 @@ app.use("/order", orderroute);
 app.use("/payment", paymentroutes);
 app.use("/expense", expenseroutes);
 app.use("/business", businessanalytics);
-app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
+app.listen(3000, () => console.log("Server running on http://localhost:3000"));
 //# sourceMappingURL=Index.js.map
