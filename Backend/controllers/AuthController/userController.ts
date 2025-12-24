@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../../models/userModel/userModel.js";
 import type { UserInfo } from "../../models/userModel/userModel.js";
-import xss from "xss"
+import xss from "xss";
 import nodemailer from "nodemailer";
 
 const otpStorage = new Map<string, any>();
@@ -29,7 +29,7 @@ export const SignUp = async (req: Request, res: Response) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(otp)
+    console.log(otp);
     otpStorage.set(email, {
       otp,
       name,
@@ -66,7 +66,6 @@ export const SignUp = async (req: Request, res: Response) => {
   }
 };
 
-
 export const VerifyOTP = async (req: Request, res: Response) => {
   try {
     const { email, otp } = req.body;
@@ -89,7 +88,6 @@ export const VerifyOTP = async (req: Request, res: Response) => {
       shopName: data.shopName,
     });
 
-    // ✅ Fetch user properly (important!)
     const user: any = await userModel.findOne({ email: data.email });
 
     if (!user) {
@@ -99,19 +97,16 @@ export const VerifyOTP = async (req: Request, res: Response) => {
 
     otpStorage.delete(email);
 
-    // ✅ Sign token with correct id
-    // const token = jwt.sign(
-    //   { id: user._id.toString(), email: user.email },
-    //   process.env.JWT_KEY as string,
-    //   { expiresIn: "7d" }
-    // );
-const token = jwt.sign(
-  { email: user.email,id:user._id },
-  process.env.JWT_KEY as string,
-  { expiresIn: "7d" }
-);
+    const token = jwt.sign(
+      { email: user.email, id: user._id },
+      process.env.JWT_KEY as string,
+      { expiresIn: "7d" }
+    );
 
-    console.log("🪪 JWT Payload:", { id: user._id.toString(), email: user.email });
+    console.log("🪪 JWT Payload:", {
+      id: user._id.toString(),
+      email: user.email,
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -126,7 +121,6 @@ const token = jwt.sign(
     res.status(500).json({ error: "Something went wrong" });
   }
 };
-
 
 export const SignIn = async (req: Request, res: Response) => {
   try {
@@ -143,7 +137,10 @@ export const SignIn = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-const isPasswordValid = await bcrypt.compare(password, user.password as string);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.password as string
+    );
 
     console.log("🔑 Password valid:", isPasswordValid);
 
@@ -152,9 +149,13 @@ const isPasswordValid = await bcrypt.compare(password, user.password as string);
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token: string = jwt.sign({ email: user.email,id:user._id }, process.env.JWT_KEY as string, {
-      expiresIn: "7d",
-    });
+    const token: string = jwt.sign(
+      { email: user.email, id: user._id },
+      process.env.JWT_KEY as string,
+      {
+        expiresIn: "7d",
+      }
+    );
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -170,84 +171,74 @@ const isPasswordValid = await bcrypt.compare(password, user.password as string);
   }
 };
 
-export const ForgotPassword= async (req: Request , res:Response)=>{
-
+export const ForgotPassword = async (req: Request, res: Response) => {
   try {
-    const {email , password, confirmPassword} = req.body
-    const user = await userModel.findOne({email})
-     
-    if(user) {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const { email, password, confirmPassword } = req.body;
+    const user = await userModel.findOne({ email });
 
-    otpStorage.set(email, {
-      otp,
-      email,
-      password,
-      confirmPassword
-    });
+    if (user) {
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD, // Must be Google App Password!
-      },
-    });
+      otpStorage.set(email, {
+        otp,
+        email,
+        password,
+        confirmPassword,
+      });
 
-    const info = await transporter.sendMail({
-      from: `"Billing System" <${process.env.EMAIL}>`,
-      to: email,
-      subject: "Verify your Billing System OTP",
-      html: `
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.PASSWORD, 
+        },
+      });
+
+      const info = await transporter.sendMail({
+        from: `"Billing System" <${process.env.EMAIL}>`,
+        to: email,
+        subject: "Verify your Billing System OTP",
+        html: `
         <p>Hello ${email},</p>
         <p>Your OTP for Billing System is <b>${otp}</b>.</p>
         <p>This OTP will expire in 5 minutes.</p>
       `,
-    });
+      });
 
-    console.log("✅ OTP sent to:", email);
-    console.log("🔢 OTP:", otp);
-    console.log("📬 Message ID:", info.messageId);
+      console.log("✅ OTP sent to:", email);
+      console.log("🔢 OTP:", otp);
+      console.log("📬 Message ID:", info.messageId);
 
-    res.status(200).json({ message: "OTP sent successfully" });
+      res.status(200).json({ message: "OTP sent successfully" });
 
-    // Auto-delete OTP after 5 min
-    setTimeout(() => otpStorage.delete(email), 5 * 60 * 1000);
-    }else{
-      console.log("user does not exist ")
+      // Auto-delete OTP after 5 min
+      setTimeout(() => otpStorage.delete(email), 5 * 60 * 1000);
+    } else {
+      console.log("user does not exist ");
     }
-
-
-  }catch(err){
-  console.error("🔥 forgotpass error:", err);
+  } catch (err) {
+    console.error("🔥 forgotpass error:", err);
     res.status(500).json({ error: "Server error" });
   }
-}
+};
 
-export const VerifyForgotPassword=async (req:Request,res:Response)=>{
-
-  try{
-    const {email , otp} = req.body
-    const data=otpStorage.get(email)
-    if(otp===data.otp){
-      if(data.password===data.confirmPassword){
-        const hashedPassword=await bcrypt.hash(data.password,10)
-        userModel.findOneAndUpdate({email},{password : hashedPassword})
+export const VerifyForgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email, otp } = req.body;
+    const data = otpStorage.get(email);
+    if (otp === data.otp) {
+      if (data.password === data.confirmPassword) {
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+        userModel.findOneAndUpdate({ email }, { password: hashedPassword });
+      } else {
+        res.status(400).json({ error: "Entered pass does not match" });
+        otpStorage.delete(email);
       }
-      else{
-        res.status(400).json({error: "Entered pass does not match"})
-        otpStorage.delete(email)
-      }
-    }else {
-      res.status(400).json({error:"OTP doesnt match"})
-      otpStorage.delete(email)
+    } else {
+      res.status(400).json({ error: "OTP doesnt match" });
+      otpStorage.delete(email);
+    }
+  } catch (err) {
+    console.log(err);
   }
-
-  
-  }catch(err){
-  console.log(err)
-    
-  }
-   
-}
-
+};

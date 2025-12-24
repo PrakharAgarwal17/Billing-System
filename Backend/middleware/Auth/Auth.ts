@@ -38,6 +38,6 @@ export default async function isloggedin(
 
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" });
+    return res.status(500).json({ message: err });
   }
 }

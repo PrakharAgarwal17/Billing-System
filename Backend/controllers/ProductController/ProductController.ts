@@ -1,11 +1,16 @@
 import { response, type Request, type Response } from "express";
 import productModel from "../../models/productModel/productModel.js";
 import { error } from "console";
+import mongoose from "mongoose"
 
 export async function addProduct(req: Request, res: Response) {
   try {
     const userid = req.userId?.toString();
-    console.log(userid);
+
+    if (!userid) {
+      return res.status(401).json({ message: "Unauthorized entry" });
+    }
+
     const {
       ProductName,
       ProductQty,
@@ -13,15 +18,35 @@ export async function addProduct(req: Request, res: Response) {
       PerProductCP,
       DiscountedPrice,
     } = req.body;
+ 
+    if(typeof ProductName!=="string" || !ProductName.trim()){
+       return res.status(400).json({message:"Invalid type of ProductName"})
+    }
+    if(isNaN(Number(ProductQty))|| typeof ProductQty!=="number"||ProductQty<0){
+       return res.status(400).json({message:"Invalid type of Product Quantity"})
+    }
+    if(isNaN(Number(PerProductSP))|| typeof PerProductSP!=="number"||PerProductSP<0){
+      return res.status(400).json({message:"Invalid type of Product Selling Price"})
+    }
+    if(isNaN(Number(PerProductCP))|| typeof PerProductCP!=="number"||PerProductCP<0){
+      return res.status(400).json({message:"Invalid type of Product Cost Price"})
+    }
+    if(isNaN(Number(DiscountedPrice))|| typeof DiscountedPrice!=="number"|| DiscountedPrice<0){
+      return res.status(400).json({message:"Invalid type of Discounted Price"})
+    }
+
+
     const shopId = req.params.shopId;
-    console.log(shopId);
-    if (!userid) {
-      return res.status(401).json({ message: "Unauthorized entry" });
-    } else if (!shopId) {
-      return res.status(400).json({ message: "Shop not found" });
+
+    if(typeof shopId !=="string" || !mongoose.Types.ObjectId.isValid(shopId)) {
+      return res.status(400).json({ message: "Error in finding the shop" });
     }
 
     const ProductPhoto = req.file ? `/uploads/${req.file.filename}` : null;
+    if (ProductPhoto && typeof ProductPhoto !== "string") {
+           return res.status(400).json({ message: "Invalid Product photo" })
+        }
+
     const product = await productModel.create({
       userId: userid,
       shopId: shopId,
@@ -32,25 +57,33 @@ export async function addProduct(req: Request, res: Response) {
       ProductPhoto,
       DiscountedPrice,
     });
-    if (product) {
-      return res.status(201).json({ message: "Product added successfully" });
-      console.log(product);
-    } else {
+    if(product) {
+      return res.status(200).json({ message: "Product added successfully" });
+    } 
+    else {
       return res.json(400).json({ message: "Something went wrong" });
     }
   } catch (err) {
-    res.status(404).json({ message: err });
+    return res.status(500).json({ message: err });
   }
 }
 
 export async function updateProduct(req: Request, res: Response) {
   try {
     const userId = req.userId?.toString();
-    console.log(userId);
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized entry" });
+    }
+
     const shopId = req.params.shopId;
-    console.log(shopId);
+    if(typeof shopId !=="string" || !mongoose.Types.ObjectId.isValid(shopId)) {
+      return res.status(400).json({ message: "Error in finding the shop" });
+    }
+
     const productId = req.params.productId;
-    console.log(productId)
+    if(typeof productId!=="string"|| !mongoose.Types.ObjectId.isValid(productId)){
+       return res.status(400).json({ message: "Error in finding product" });
+    }
 
     const {
       ProductName,
@@ -59,15 +92,29 @@ export async function updateProduct(req: Request, res: Response) {
       PerProductCP,
       DiscountedPrice,
     } = req.body;
-    
-    if (!shopId) {
-      return res.status(400).json({ message: "Shop not found" });
+
+    if(typeof ProductName!=="string" || !ProductName.trim()){
+       return res.status(400).json({message:"Invalid type of ProductName"})
+    }
+    if(isNaN(Number(ProductQty))|| typeof ProductQty!=="number"||ProductQty<0){
+       return res.status(400).json({message:"Invalid type of Product Quantity"})
+    }
+    if(isNaN(Number(PerProductSP))|| typeof PerProductSP!=="number"||PerProductSP<0){
+      return res.status(400).json({message:"Invalid type of Product Selling Price"})
+    }
+    if(isNaN(Number(PerProductCP))|| typeof PerProductCP!=="number"||PerProductCP<0){
+      return res.status(400).json({message:"Invalid type of Product Cost Price"})
+    }
+    if(isNaN(Number(DiscountedPrice))|| typeof DiscountedPrice!=="number"|| DiscountedPrice<0){
+      return res.status(400).json({message:"Invalid type of Discounted Price"})
     }
 
-    if (!userId) {
-      return res.status(400).json({ message: "Unauthorised user" });
-    }
+    
     const ProductPhoto = req.file ? `/uploads/${req.file.filename}` : null;
+
+    if (ProductPhoto && typeof ProductPhoto !== "string") {
+           return res.status(400).json({ message: "Invalid Product photo" })
+    }
     
     const updatedProduct = await productModel.findOneAndUpdate(
       { userId: userId, shopId: shopId, _id: productId },
@@ -80,7 +127,6 @@ export async function updateProduct(req: Request, res: Response) {
         DiscountedPrice
       },{new:true}
     );
-    console.log(updatedProduct)
 
     if (!updatedProduct) {
         return res.status(404).json({ message: "Something went wrong" });
@@ -89,8 +135,7 @@ export async function updateProduct(req: Request, res: Response) {
         return res.status(200).json({message:"Product updated succesfully",updatedProduct})
     }
   } catch (err) {
-    console.log(err);
-    return res.status(400).json({ message: err });
+           return res.status(500).json({ message: err });
   }
 }
 
@@ -99,20 +144,21 @@ export async function delProduct(req:Request,res:Response){
     const userId=req.userId?.toString()
     const shopId=req.params.shopId
     const productId=req.params.productId
-    if(!userId){
-        return res.status(401).json({message:"Unauthorised user"})
+    if(typeof userId !=="string"|| !mongoose.Types.ObjectId.isValid(userId)){
+        return res.status(401).json({message:"Invalid user"})
     }
-    else if(!shopId){
+    else if(typeof shopId !=="string"|| !mongoose.Types.ObjectId.isValid(shopId)){
         return res.status(400).json({message:"Shop not found"})
     }
-    else if(!productId){
+    else if(typeof productId !=="string"|| !mongoose.Types.ObjectId.isValid(productId)){
         return res.status(400).json({message:"Product not found"})
-    }else{
+    }
+    else{
         await productModel.findOneAndDelete({userId:userId,shopId:shopId,_id:productId})
         return res.status(200).json({message:"Deleted successfully"})
     }
 }catch(err){
-    return res.status(404).json("")
+    return res.status(500).json({message:err})
 }
 }
 
@@ -124,26 +170,25 @@ try {
 
    const Response = await productModel.findOne({userId: userId  , _id: productId , shopId: shopId})
   
-    if(!userId){
-        return res.status(401).json({message:"Unauthorised user"})
+    if(typeof userId !=="string"|| !mongoose.Types.ObjectId.isValid(userId)){
+        return res.status(401).json({message:"Invalid user"})
     }
-    if(!shopId){
+    if(typeof shopId !=="string"|| !mongoose.Types.ObjectId.isValid(shopId)){
         return res.status(400).json({message:"Shop not found"})
     }
-    if(!productId){
+    if(typeof productId !=="string"|| !mongoose.Types.ObjectId.isValid(productId)){
         return res.status(400).json({message:"Product not found"})
     }
 
     if(!Response) {
       return res.status(404).json({message : error})
-    }else {
-      return res.json(Response)
     }
-   
 
+    return res.send(Response)
+    
 }catch(err) {
-  console.log(err)
-  return res.status(404).json({message : err})
+
+  return res.status(500).json({message : err})
 
 }
 }

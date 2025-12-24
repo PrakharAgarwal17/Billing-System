@@ -1,13 +1,36 @@
 import ShopModel from "../../models/shopModel/shopmodel.js";
+import mongoose from "mongoose";
 export async function createShop(req, res) {
+    const userId = req.userId?.toString();
+    if (typeof userId !== "string" || !mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(401).json({ message: "Invalid User" });
+    }
     try {
         const { ShopName, Industry, NumberOfWorkers, ElectricityPerUnitRate, ShopIsOnRent, ShopRent, } = req.body;
-        if (!req.userId) {
-            return res.status(401).json({ message: "unauthorized" });
+        if (typeof ShopName !== "string" || !ShopName.trim()) {
+            return res.status(400).json({ message: "Invalid ShopName type" });
+        }
+        if (typeof Industry !== "string" || !Industry.trim()) {
+            return res.status(400).json({ message: "Invalid Industry type" });
+        }
+        if (isNaN(Number(NumberOfWorkers)) || NumberOfWorkers < 0 || typeof NumberOfWorkers !== "number") {
+            return res.status(400).json({ message: "Invalid No of Workers" });
+        }
+        if (isNaN(Number(ElectricityPerUnitRate)) || ElectricityPerUnitRate < 0 || typeof ElectricityPerUnitRate !== "number") {
+            return res.status(400).json({ message: "Invalid Electricity Per Unit Rate" });
+        }
+        if (typeof ShopIsOnRent !== "boolean") {
+            return res.status(400).json({ message: "Invalid Type for Shop is On Rent" });
+        }
+        if (isNaN(Number(ShopRent)) || ShopRent < 0 || typeof ShopRent !== "number") {
+            return res.status(400).json({ message: "Invalid Shop Rent Type" });
         }
         const ShopPhoto = req.file ? `/uploads/${req.file.filename}` : null;
+        if (ShopPhoto && typeof ShopPhoto !== "string") {
+            return res.status(400).json({ message: "Invalid Shop photo type" });
+        }
         await ShopModel.create({
-            UserId: req.userId, // 🔥 LOGGED IN USER ID
+            UserId: userId, // 🔥 LOGGED IN USER ID
             ShopName,
             ShopPhoto,
             Industry,
@@ -22,7 +45,7 @@ export async function createShop(req, res) {
         });
     }
     catch (err) {
-        return res.status(400).json({
+        return res.status(500).json({
             success: false,
             message: err.message || "Something went wrong",
         });
@@ -31,13 +54,36 @@ export async function createShop(req, res) {
 export async function updateShop(req, res) {
     try {
         const shopId = req.params.shopId;
-        console.log(shopId);
+        if (typeof shopId !== "string" || !mongoose.Types.ObjectId.isValid(shopId)) {
+            return res.status(401).json({ message: "Invalid shop" });
+        }
         const { ShopName, Industry, NumberOfWorkers, ElectricityPerUnitRate, ShopIsOnRent, ShopRent, } = req.body;
+        if (typeof ShopName !== "string" || !ShopName.trim()) {
+            return res.status(400).json({ message: "Invalid ShopName type" });
+        }
+        if (typeof Industry !== "string" || !Industry.trim()) {
+            return res.status(400).json({ message: "Invalid Industry type" });
+        }
+        if (isNaN(Number(NumberOfWorkers)) || NumberOfWorkers < 0 || typeof NumberOfWorkers !== "number") {
+            return res.status(400).json({ message: "Invalid No of Workers" });
+        }
+        if (isNaN(Number(ElectricityPerUnitRate)) || ElectricityPerUnitRate < 0 || typeof ElectricityPerUnitRate !== "number") {
+            return res.status(400).json({ message: "Invalid Electricity Per Unit Rate" });
+        }
+        if (typeof ShopIsOnRent !== "boolean") {
+            return res.status(400).json({ message: "Invalid Type for Shop is On Rent" });
+        }
+        if (isNaN(Number(ShopRent)) || ShopRent < 0 || typeof ShopRent !== "number") {
+            return res.status(400).json({ message: "Invalid Shop Rent Type" });
+        }
         const userId = req.userId?.toString();
-        if (!req.userId) {
-            return res.status(401).json({ message: "unauthorized" });
+        if (typeof userId !== "string" || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(401).json({ message: "Invalid User" });
         }
         const ShopPhoto = req.file ? `/uploads/${req.file.filename}` : null;
+        if (ShopPhoto && typeof ShopPhoto !== "string") {
+            return res.status(400).json({ message: "Invalid Shop photo type" });
+        }
         const shopinfo = await ShopModel.findOneAndUpdate({ UserId: userId, _id: shopId }, {
             ShopName,
             ShopPhoto,
@@ -48,10 +94,10 @@ export async function updateShop(req, res) {
             ShopRent,
         });
         if (!shopinfo) {
-            res.status(404).send({ message: "Shop not found" });
+            return res.status(404).send({ message: "Shop not found" });
         }
         else {
-            res.status(200).send({ message: "Done updating..." });
+            return res.status(200).send({ message: "Done updating..." });
         }
     }
     catch (err) {
@@ -64,29 +110,29 @@ export async function updateShop(req, res) {
 export async function delShop(req, res) {
     try {
         const userId = req.userId?.toString();
+        if (typeof userId !== "string" || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(401).json({ message: "Invalid user" });
+        }
         const shopId = req.params.shopId;
+        if (typeof shopId !== "string" || !mongoose.Types.ObjectId.isValid(shopId)) {
+            return res.status(401).json({ message: "Invalid shop" });
+        }
         await ShopModel.findOneAndDelete({ UserId: userId, _id: shopId });
-        if (!userId) {
-            res.status(404).json({ message: "User is unauthorized" });
-        }
-        if (!shopId) {
-            res.json({ message: "shop does not exist" });
-        }
-        else {
-            res.status(201).json({ message: "shop deleted successfully" });
-        }
+        return res.status(201).json({ message: "shop deleted successfully" });
     }
     catch (err) {
-        console.log(err);
-        res.status(400).json({ message: "There is an error" });
+        return res.status(500).json({ message: "There is an error" });
     }
 }
 export async function renderShop(req, res) {
     try {
         const userId = req.userId?.toString();
+        if (typeof userId !== "string" || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: "Invalid user" });
+        }
         const shopId = req.params.shopId;
-        if (!shopId) {
-            return res.status(400).json({ message: "Shop ID missing" });
+        if (typeof shopId !== "string" || !mongoose.Types.ObjectId.isValid(shopId)) {
+            return res.status(400).json({ message: "Invalid shop" });
         }
         const store = await ShopModel.findOne({
             UserId: userId,
@@ -95,10 +141,10 @@ export async function renderShop(req, res) {
         if (!store) {
             return res.status(404).json({ message: "Shop Not Found" });
         }
-        res.status(200).json(store);
+        return res.send(store);
     }
     catch (err) {
-        res.status(500).json({
+        return res.status(500).json({
             message: "Internal Server Error",
             error: err,
         });

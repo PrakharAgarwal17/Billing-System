@@ -12,6 +12,7 @@ import orderroute from "./routes/orderRoute/orderRoute.js";
 import paymentroutes from "./routes/paymentroutes/paymentroutes.js";
 import expenseroutes from "./routes/expenseroutes/expenseroutes.js";
 import businessanalytics from "./routes/businessAnalyticsroute/businessAnalyticsroutes.js";
+import ExpressMongoSanitize from "express-mongo-sanitize";
 dotenv.config();
 const app = express();
 app.use(cors({
@@ -22,6 +23,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(ExpressMongoSanitize());
 connectDB();
 app.get("/", (req, res) => {
     res.send("Server running successfully ✅");

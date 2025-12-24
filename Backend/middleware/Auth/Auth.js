@@ -17,7 +17,7 @@ export default async function isloggedin(req, res, next) {
         next();
     }
     catch (err) {
-        return res.status(401).json({ message: "Invalid or expired token" });
+        return res.status(500).json({ message: err });
     }
 }
 //# sourceMappingURL=Auth.js.map

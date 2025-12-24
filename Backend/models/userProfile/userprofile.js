@@ -3,24 +3,24 @@ import mongoose from "mongoose";
 const profileSchema = new Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "email",
-        require: true
+        ref: "User",
+        required: true
     },
     name: {
         type: String,
-        require: true
+        required: true
     },
     contact: {
         type: Number,
-        require: true
+        required: true
     },
     profilePhoto: {
         type: Buffer,
-        require: true,
+        required: true,
     },
     region: {
         type: String,
-        require: true
+        required: true
     }
 });
 const profileModel = mongoose.model("profile", profileSchema);

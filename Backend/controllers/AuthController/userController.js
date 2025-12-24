@@ -72,21 +72,17 @@ export const VerifyOTP = async (req, res) => {
             password: hashedPassword,
             shopName: data.shopName,
         });
-        // ✅ Fetch user properly (important!)
         const user = await userModel.findOne({ email: data.email });
         if (!user) {
             console.log("❌ User not found after creation");
             return res.status(404).json({ error: "User not found" });
         }
         otpStorage.delete(email);
-        // ✅ Sign token with correct id
-        // const token = jwt.sign(
-        //   { id: user._id.toString(), email: user.email },
-        //   process.env.JWT_KEY as string,
-        //   { expiresIn: "7d" }
-        // );
         const token = jwt.sign({ email: user.email, id: user._id }, process.env.JWT_KEY, { expiresIn: "7d" });
-        console.log("🪪 JWT Payload:", { id: user._id.toString(), email: user.email });
+        console.log("🪪 JWT Payload:", {
+            id: user._id.toString(),
+            email: user.email,
+        });
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -143,13 +139,13 @@ export const ForgotPassword = async (req, res) => {
                 otp,
                 email,
                 password,
-                confirmPassword
+                confirmPassword,
             });
             const transporter = nodemailer.createTransport({
                 service: "gmail",
                 auth: {
                     user: process.env.EMAIL,
-                    pass: process.env.PASSWORD, // Must be Google App Password!
+                    pass: process.env.PASSWORD,
                 },
             });
             const info = await transporter.sendMail({
