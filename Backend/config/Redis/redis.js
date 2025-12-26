@@ -3,7 +3,7 @@ const client = createClient({
     username: 'default',
     password: 'ok',
     socket: {
-        host: 'redis-11382.c114.us-east-1-4.ec2.cloud.redislabs.com',
+        host: process.env.REDIS_HOST,
         port: 11382
     }
 });

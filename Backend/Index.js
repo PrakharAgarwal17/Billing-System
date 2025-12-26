@@ -15,6 +15,10 @@ import businessanalytics from "./routes/businessAnalyticsroute/businessAnalytics
 import mongoSanitize from "express-mongo-sanitize";
 dotenv.config();
 const app = express();
+// product with highest profit margins
+// low stock alert
+// predict next month revenue based on trends identify seasonal patterns (by ai)
+// socket.io in support , with webRTC
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:3000'],
     methods: ['GET', 'POST'],

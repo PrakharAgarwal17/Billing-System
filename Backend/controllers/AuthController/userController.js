@@ -42,10 +42,87 @@ export const SignUp = async (req, res) => {
             to: email,
             subject: "Verify your Billing System OTP",
             html: `
-        <p>Hello ${name},</p>
-        <p>Your OTP for Billing System is <b>${otp}</b>.</p>
-        <p>This OTP will expire in 5 minutes.</p>
-      `,
+  <div style="margin:0;padding:0;background-color:#0f172a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 0;">
+      <tr>
+        <td align="center">
+
+          <!-- Main Container -->
+          <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:10px;overflow:hidden;font-family:Segoe UI,Roboto,Arial,sans-serif;">
+
+            <!-- Header -->
+            <tr>
+              <td style="background:#020617;padding:20px 24px;color:#ffffff;">
+                <h1 style="margin:0;font-size:20px;font-weight:600;letter-spacing:0.5px;">
+                  BILLING SYSTEM
+                </h1>
+                <p style="margin:6px 0 0;font-size:13px;color:#94a3b8;">
+                  Secure Account Verification
+                </p>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding:28px;color:#0f172a;">
+                <p style="margin:0 0 14px;font-size:14px;">
+                  Hello <strong>${email}</strong>,
+                </p>
+
+                <p style="margin:0 0 18px;font-size:14px;line-height:1.6;">
+                  To continue with your request, please verify your identity
+                  using the One-Time Password (OTP) provided below.
+                </p>
+
+                <!-- OTP Box -->
+                <div style="text-align:center;margin:26px 0;">
+                  <div style="
+                    display:inline-block;
+                    padding:16px 28px;
+                    font-size:28px;
+                    font-weight:700;
+                    letter-spacing:8px;
+                    color:#1e293b;
+                    background:#f1f5f9;
+                    border-radius:8px;
+                    border:1px dashed #cbd5f5;
+                  ">
+                    ${otp}
+                  </div>
+                </div>
+
+                <!-- Info -->
+                <div style="padding:14px;background:#f8fafc;border-left:4px solid #2563eb;">
+                  <p style="margin:0;font-size:13px;color:#1e3a8a;">
+                    This OTP is valid for <strong>5 minutes</strong>.
+                    Please do not share it with anyone.
+                  </p>
+                </div>
+
+                <!-- Warning -->
+                <p style="margin-top:18px;font-size:12px;color:#64748b;">
+                  If you did not request this verification, you can safely ignore this email.
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="background:#f8fafc;padding:16px;text-align:center;">
+                <p style="margin:0;font-size:11px;color:#64748b;">
+                  © ${new Date().getFullYear()} Billing System • This is an automated message
+                </p>
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </div>
+  `,
         });
         res.status(200).json({ message: "OTP sent successfully" });
         setTimeout(() => otpStorage.delete(email), 5 * 60 * 1000);
