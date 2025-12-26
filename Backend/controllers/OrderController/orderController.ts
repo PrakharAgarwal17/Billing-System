@@ -9,9 +9,21 @@ export async function confirmOrder(req: Request, res: Response) {
     const userId = req.userId?.toString();
     const cartId = req.params.cartId;
     const shopId = req.params.shopId;
-    const token =
-  req.cookies.token ||
-  req.headers.authorization?.split(" ")[1];
+   let token: string | undefined;
+
+if (req.cookies?.token) {
+  token = req.cookies.token;
+} else if (
+  typeof req.headers.authorization === "string" &&
+  req.headers.authorization.startsWith("Bearer ")
+) {
+  token = req.headers.authorization.split(" ")[1];
+}
+
+if (!token) {
+  return res.status(401).json({ message: "Authentication token missing" });
+}
+
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorised user" });
@@ -59,19 +71,23 @@ export async function confirmOrder(req: Request, res: Response) {
       orderAt: new Date(),
     });
 
-    const response = await axios.post(
-      `http://localhost:3000/product/lowquantityalert/${shopId}/${order._id}`,{}, {
+    axios.post(
+  `http://localhost:3000/product/lowquantityalert/${shopId}/${order._id}`,
+  {},
+  {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   }
-    );
+).catch(err => {
+  console.error("Low stock alert failed:", err.message);
+});
 
-    if (response.status !== 200) {
-      return res.status(502).json({ message: "Low quantity alert failed" });
-    }else {
-      return res.status(200).json({message : "order created successfully"})
-    }
+// ALWAYS succeed order
+return res.status(200).json({
+  message: "Order created successfully",
+  orderId: order._id,
+});
  
   } catch (err) {
     console.error(err);
