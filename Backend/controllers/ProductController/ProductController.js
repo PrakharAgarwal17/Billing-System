@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import orderModel from "../../models/orderModel/orderModel.js";
 import nodemailer from "nodemailer";
 import userModel from "../../models/userModel/userModel.js";
+import ShopModel from "../../models/shopModel/shopmodel.js";
 export async function addProduct(req, res) {
     try {
         const userid = req.userId?.toString();
@@ -226,15 +227,18 @@ export async function lowquantityalert(req, res) {
         }
         const order = await orderModel.findOne({ _id: orderId, shopId, userId });
         if (order == null || order == undefined) {
-            return res.status(400).json({ message: "order  is null or undefined" });
+            return res.status(400).json({ message: "order is null or undefined" });
         }
         const cartofOrder = order?.cart;
-        let arrayofProduct = [];
-        let productId;
+        let arrayofProduct = []; // [11111,2222,33333]
+        // [{},{},{}]
         cartofOrder.map((product) => {
-            productId = product.productId.toString();
+            const productId = product.productId.toString();
             arrayofProduct.push(productId);
         });
+        // Pehle saare low quantity products collect karo
+        const lowQuantityProducts = [];
+        const lowQuantity = 10;
         for (const product of arrayofProduct) {
             const findproduct = await productModel.findOne({
                 _id: product,
@@ -245,114 +249,143 @@ export async function lowquantityalert(req, res) {
                 return res.status(400).json({ message: "product not found" });
             }
             const productquantity = Number(findproduct?.ProductQty);
-            if (productquantity < 10) {
-                const userData = await userModel.findOne({ _id: userId });
-                if (userData === null || userData === undefined) {
-                    return res.status(400).json({ message: "User not found" });
-                }
-                const email = userData?.email;
-                const username = userData?.name;
-                const transporter = nodemailer.createTransport({
-                    service: "gmail",
-                    auth: {
-                        user: process.env.EMAIL,
-                        pass: process.env.PASSWORD,
-                    },
+            // Agar low quantity hai toh array mein add karo
+            if (productquantity <= lowQuantity) {
+                lowQuantityProducts.push({
+                    name: findproduct.ProductName,
+                    quantity: findproduct.ProductQty,
                 });
-                await transporter.sendMail({
-                    from: `"Billing System" <${process.env.EMAIL}>`,
-                    to: email,
-                    subject: "🚨 Critical Stock Alert | Immediate Attention Required",
-                    html: `
-  <div style="margin:0;padding:0;background-color:#0f172a;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 0;">
-      <tr>
-        <td align="center">
-
-          <!-- Main Container -->
-          <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:10px;overflow:hidden;font-family:Segoe UI,Roboto,Arial,sans-serif;">
-
-            <!-- Header -->
+            }
+        }
+        //  [{},{},{}]
+        // Agar koi bhi product low quantity mein hai, toh EK email bhejo
+        if (lowQuantityProducts.length > 0) {
+            const shop = await ShopModel.findOne({ UserId: userId, _id: shopId });
+            if (shop == undefined || shop == null) {
+                return res.status(400).json({ message: "shop not found" });
+            }
+            const userData = await userModel.findOne({ _id: userId });
+            if (userData === null || userData === undefined) {
+                return res.status(400).json({ message: "User not found" });
+            }
+            const email = userData?.email;
+            const username = userData?.name;
+            // Product cards HTML generate karo
+            const productCardsHTML = lowQuantityProducts
+                .map((product) => `
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;margin-bottom:12px;">
+          <tr>
+            <td style="padding:14px;background:#f8fafc;border-bottom:1px solid #e5e7eb;">
+              <span style="font-size:12px;color:#64748b;">PRODUCT NAME</span>
+              <div style="font-size:15px;font-weight:600;margin-top:4px;">
+                ${product.name}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:14px;">
+              <span style="font-size:12px;color:#64748b;">REMAINING QUANTITY</span>
+              <div style="font-size:22px;font-weight:700;color:#dc2626;margin-top:4px;">
+                ${product.quantity}
+              </div>
+            </td>
+          </tr>
+        </table>
+      `)
+                .join("");
+            const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: process.env.EMAIL,
+                    pass: process.env.PASSWORD,
+                },
+            });
+            await transporter.sendMail({
+                from: `"Billing System" <${process.env.EMAIL}>`,
+                to: email,
+                subject: "🚨 Critical Stock Alert | Immediate Attention Required",
+                html: `
+        <div style="margin:0;padding:0;background-color:#0f172a;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 0;">
             <tr>
-              <td style="background:#020617;padding:20px 24px;color:#ffffff;">
-                <h1 style="margin:0;font-size:20px;font-weight:600;letter-spacing:0.5px;">
-                  BILLING SYSTEM
-                </h1>
-                <p style="margin:6px 0 0;font-size:13px;color:#94a3b8;">
-                  Inventory Monitoring Alert
-                </p>
-              </td>
-            </tr>
+              <td align="center">
 
-            <!-- Body -->
-            <tr>
-              <td style="padding:28px;color:#0f172a;">
-                <p style="margin:0 0 14px;font-size:14px;">
-                  Hello <strong>${username}</strong>,
-                </p>
+                <!-- Main Container -->
+                <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:10px;overflow:hidden;font-family:Segoe UI,Roboto,Arial,sans-serif;">
 
-                <p style="margin:0 0 18px;font-size:14px;line-height:1.6;">
-                  This is a system-generated alert to inform you that the following
-                  product has reached a <strong style="color:#dc2626;">critical stock level</strong>.
-                </p>
-
-                <!-- Product Card -->
-                <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;">
+                  <!-- Header -->
                   <tr>
-                    <td style="padding:14px;background:#f8fafc;border-bottom:1px solid #e5e7eb;">
-                      <span style="font-size:12px;color:#64748b;">PRODUCT NAME</span>
-                      <div style="font-size:15px;font-weight:600;margin-top:4px;">
-                        ${findproduct.ProductName}
-                      </div>
+                    <td style="background:#020617;padding:20px 24px;color:#ffffff;">
+                      <h1 style="margin:0;font-size:20px;font-weight:600;letter-spacing:0.5px;">
+                        BILLING SYSTEM
+                      </h1>
+                      <p style="margin:6px 0 0;font-size:13px;color:#94a3b8;">
+                          Inventory Monitoring Alert for Shop Name :
+                          <span style="color:#2563eb;font-weight:600;">
+                          ${shop?.ShopName}
+                          </span>
+                      </p>
+
                     </td>
                   </tr>
+
+                  <!-- Body -->
                   <tr>
-                    <td style="padding:14px;">
-                      <span style="font-size:12px;color:#64748b;">REMAINING QUANTITY</span>
-                      <div style="font-size:22px;font-weight:700;color:#dc2626;margin-top:4px;">
-                        ${findproduct.ProductQty}
+                    <td style="padding:28px;color:#0f172a;">
+                      <p style="margin:0 0 14px;font-size:14px;">
+                        Hello <strong>${username}</strong>,
+                      </p>
+
+                      <p style="margin:0 0 18px;font-size:14px;line-height:1.6;">
+                        This is a system-generated alert to inform you that <strong style="color:#dc2626;">${lowQuantityProducts.length} product(s)</strong> have reached critical stock levels.
+                      </p>
+
+                      <!-- Product Cards -->
+                      ${productCardsHTML}
+
+                      <!-- Warning -->
+                      <div style="margin-top:22px;padding:14px;border-left:4px solid #dc2626;background:#fef2f2;">
+                        <p style="margin:0;font-size:13px;color:#991b1b;">
+                          Immediate restocking is strongly recommended to avoid
+                          operational disruption.
+                        </p>
                       </div>
+
+                      <!-- CTA -->
+                      <div style="margin-top:26px;text-align:center;">
+                        <span style="display:inline-block;background:#020617;color:#ffffff;padding:12px 20px;border-radius:6px;font-size:13px;font-weight:500;">
+                          Review Inventory Dashboard
+                        </span>
+                      </div>
+
                     </td>
                   </tr>
+
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background:#f8fafc;padding:16px;text-align:center;">
+                      <p style="margin:0;font-size:11px;color:#64748b;">
+                        © ${new Date().getFullYear()} Billing System • Automated Notification
+                      </p>
+                    </td>
+                  </tr>
+
                 </table>
 
-                <!-- Warning -->
-                <div style="margin-top:22px;padding:14px;border-left:4px solid #dc2626;background:#fef2f2;">
-                  <p style="margin:0;font-size:13px;color:#991b1b;">
-                    Immediate restocking is strongly recommended to avoid
-                    operational disruption.
-                  </p>
-                </div>
-
-                <!-- CTA -->
-                <div style="margin-top:26px;text-align:center;">
-                  <span style="display:inline-block;background:#020617;color:#ffffff;padding:12px 20px;border-radius:6px;font-size:13px;font-weight:500;">
-                    Review Inventory Dashboard
-                  </span>
-                </div>
-
               </td>
             </tr>
-
-            <!-- Footer -->
-            <tr>
-              <td style="background:#f8fafc;padding:16px;text-align:center;">
-                <p style="margin:0;font-size:11px;color:#64748b;">
-                  © ${new Date().getFullYear()} Billing System • Automated Notification
-                </p>
-              </td>
-            </tr>
-
           </table>
-
-        </td>
-      </tr>
-    </table>
-  </div>
-  `
-                });
-                return res.status(200).json({ message: `email send to ${email}` });
-            }
+        </div>
+        `,
+            });
+            return res.status(200).json({
+                message: `Email sent to ${email} with ${lowQuantityProducts.length} low quantity product(s)`,
+            });
+        }
+        else {
+            return res.status(200).json({
+                message: "No low quantity products found",
+            });
         }
     }
     catch (err) {
