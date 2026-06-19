@@ -134,12 +134,12 @@ export const SignUp = async (req: Request, res: Response) => {
   `,
     });
 
-    res.status(200).json({ message: "OTP sent successfully" });
+  setTimeout(() => otpStorage.delete(email), 5 * 60 * 1000);
+  return res.status(200).json({ message: "OTP sent successfully" });
 
-    setTimeout(() => otpStorage.delete(email), 5 * 60 * 1000);
   } catch (err) {
     console.error("❌ Error in SignUp:", err);
-    res.status(500).json({ error: "Failed to send OTP" });
+  return res.status(500).json({ error: "Failed to send OTP" });
   }
 };
 
@@ -185,17 +185,17 @@ export const VerifyOTP = async (req: Request, res: Response) => {
       email: user.email,
     });
 
-    res.cookie("token", token, {
+   res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
 
     console.log("✅ User created successfully:", user.email);
-    res.status(201).json({ message: "User created successfully", token });
+  return res.status(201).json({ message: "User created successfully", token });
   } catch (err) {
     console.error("❌ Error in VerifyOTP:", err);
-    res.status(500).json({ error: "Something went wrong" });
+  return res.status(500).json({ error: "Something went wrong" });
   }
 };
 
@@ -241,10 +241,10 @@ export const SignIn = async (req: Request, res: Response) => {
     });
 
     console.log("✅ Login successful for:", user.email);
-    res.status(200).json({ message: "Login successful", token });
+  return res.status(200).json({ message: "Login successful", token });
   } catch (err) {
     console.error("🔥 SignIn error:", err);
-    res.status(500).json({ error: "Server error" });
+  return res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -286,7 +286,7 @@ export const ForgotPassword = async (req: Request, res: Response) => {
       console.log("🔢 OTP:", otp);
       console.log("📬 Message ID:", info.messageId);
 
-      res.status(200).json({ message: "OTP sent successfully" });
+    return res.status(200).json({ message: "OTP sent successfully" });
 
       // Auto-delete OTP after 5 min
       setTimeout(() => otpStorage.delete(email), 5 * 60 * 1000);
@@ -295,7 +295,7 @@ export const ForgotPassword = async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error("🔥 forgotpass error:", err);
-    res.status(500).json({ error: "Server error" });
+  return res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -308,14 +308,14 @@ export const VerifyForgotPassword = async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(data.password, 10);
         userModel.findOneAndUpdate({ email }, { password: hashedPassword });
       } else {
-        res.status(400).json({ error: "Entered pass does not match" });
         otpStorage.delete(email);
+      return res.status(400).json({ error: "Entered pass does not match" });
       }
     } else {
-      res.status(400).json({ error: "OTP doesnt match" });
       otpStorage.delete(email);
+      return res.status(400).json({ error: "OTP doesnt match" });
     }
   } catch (err) {
-    console.log(err);
+   return res.status(500).json({ error: "Server error" });
   }
 };
